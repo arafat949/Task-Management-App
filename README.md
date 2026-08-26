@@ -47,29 +47,7 @@ The application provides an easy-to-use dashboard where users can:
 ---
 
 ## 🚀 Installation Guide
-Task-Management-App/
-│
-├── task_manager/
-│   ├── dashboard/
-│   │   ├── migrations/
-│   │   ├── templates/
-│   │   │   └── dashboard/
-│   │   ├── static/
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   └── forms.py
-│   │
-│   ├── task_manager/
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   └── wsgi.py
-│   │
-│   └── manage.py
-│
-├── requirements.txt
-├── README.md
-└── .gitignore
+
 
 ### 1️⃣ Clone the Repository
 
