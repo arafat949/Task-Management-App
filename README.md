@@ -47,10 +47,6 @@ The application provides an easy-to-use dashboard where users can:
 ---
 
 ## 🚀 Installation Guide
-2️⃣ Go to the Project Directory
-cd Task-Management-App
-
-📂 Project Structure
 Task-Management-App/
 │
 ├── task_manager/
