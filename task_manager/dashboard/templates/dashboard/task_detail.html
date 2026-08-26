@@ -1,0 +1,103 @@
+{% include 'core/base.html' %}
+{% block content %}
+<div class="min-h-[90vh] bg-[#0a131a] text-slate-100 flex justify-center py-10 px-4">
+  <div class="w-full max-w-4xl bg-[#1d2e3e] rounded-xl p-6 shadow-xl">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-sm text-slate-400">Task Details</p>
+        <h1 class="text-3xl font-bold text-[#9db8d1] mt-1">{{ task.title }}</h1>
+      </div>
+      <a href="{% url 'dashboard:index' %}" class="px-4 py-2 rounded-md bg-[#0d1c2a] text-slate-300 hover:bg-[#2f5170]">Back</a>
+    </div>
+
+    <div class="mt-6 grid md:grid-cols-3 gap-4">
+      <div class="bg-[#0d1c2a] rounded-lg p-4"><span class="text-slate-500 text-sm">Status</span><p class="mt-1 font-semibold">{% if task.completed %}Completed{% elif task.in_progress %}In Progress{% else %}To Do{% endif %}</p></div>
+      <div class="bg-[#0d1c2a] rounded-lg p-4"><span class="text-slate-500 text-sm">Category</span><p class="mt-1 font-semibold">{{ task.category|default:"Others" }}</p></div>
+      <div class="bg-[#0d1c2a] rounded-lg p-4"><span class="text-slate-500 text-sm">Created</span><p class="mt-1 font-semibold">{{ task.created_at|date:"M j, Y g:i A" }}</p></div>
+    </div>
+
+    <div class="mt-6 bg-[#0d1c2a] rounded-lg p-5">
+      <h2 class="text-lg font-bold text-[#9db8d1]">Description</h2>
+      <p class="mt-3 whitespace-pre-wrap text-slate-300">{% if task.description %}{{ task.description }}{% else %}No description added for this task.{% endif %}</p>
+    </div>
+
+    <!-- Subtasks -->
+    <div class="mt-6 bg-[#0d1c2a] rounded-lg p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-[#9db8d1]">Subtasks</h2>
+          <p class="text-sm text-slate-500">Break this task into smaller steps.</p>
+        </div>
+        <span class="text-sm text-slate-400">{{ subtasks|length }} step{{ subtasks|length|pluralize }}</span>
+      </div>
+
+      <form method="post" action="{% url 'dashboard:add_subtask' task.id %}" class="flex flex-col sm:flex-row gap-2 mb-5">
+        {% csrf_token %}
+        <input type="text" name="title" required maxlength="255" placeholder="Add a subtask..."
+               class="flex-1 rounded-md bg-[#1d2e3e] border border-[#3b6674] px-4 py-3 text-slate-200 outline-none focus:border-[#79c267]">
+        <button type="submit" class="px-5 py-3 rounded-md bg-[#205e38] text-white hover:bg-green-700">+ Add Step</button>
+      </form>
+
+      <div class="space-y-2">
+        {% for subtask in subtasks %}
+          <form method="post" action="{% url 'dashboard:toggle_subtask' task.id subtask.id %}"
+                class="flex items-center gap-3 rounded-lg bg-[#1d2e3e] border border-[#263b4b] px-4 py-3 hover:border-[#3b6674]">
+            {% csrf_token %}
+            <span class="w-7 text-center font-semibold text-slate-500">{{ forloop.counter }}.</span>
+            <button type="submit" aria-label="Toggle subtask completion"
+                    class="w-6 h-6 rounded-md border-2 flex items-center justify-center {% if subtask.completed %}border-green-500 bg-green-600{% else %}border-slate-500 bg-transparent{% endif %}">
+              {% if subtask.completed %}<span class="text-white text-sm font-bold">✓</span>{% endif %}
+            </button>
+            <span class="flex-1 {% if subtask.completed %}line-through text-slate-500{% else %}text-slate-200{% endif %}">
+              {{ subtask.title }}
+            </span>
+            {% if subtask.completed %}<span class="text-green-400 text-sm font-semibold">Done</span>{% endif %}
+          </form>
+        {% empty %}
+          <div class="text-center py-8 text-slate-500 border border-dashed border-[#3b6674] rounded-lg">
+            No subtasks yet. Add the first step above.
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if subtasks %}
+        <div class="mt-5 pt-5 border-t border-[#263b4b]">
+          {% if all_subtasks_completed and not task.completed %}
+            <form method="post" action="{% url 'dashboard:completed' task.id %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full py-3 rounded-md bg-green-700 text-white font-semibold hover:bg-green-600 transition">
+                ✓ All Steps Complete — Mark Main Task as Completed
+              </button>
+            </form>
+          {% elif task.completed %}
+            <div class="w-full py-3 rounded-md bg-green-900/40 border border-green-700 text-green-300 text-center font-semibold">
+              ✓ Main Task Completed
+            </div>
+          {% else %}
+            <button type="button" disabled class="w-full py-3 rounded-md bg-slate-700/50 text-slate-500 cursor-not-allowed">
+              Complete all subtasks to finish this task
+            </button>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- History -->
+    <div class="mt-6 bg-[#0d1c2a] rounded-lg p-5">
+      <h2 class="text-lg font-bold text-[#9db8d1]">History & Changes</h2>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-slate-500 border-b border-slate-700"><th class="text-left py-2">Date</th><th class="text-left py-2">Action</th><th class="text-left py-2">Status</th></tr></thead>
+          <tbody>
+          {% for item in history %}
+            <tr class="border-b border-slate-800"><td class="py-3">{{ item.changed_at|date:"M j, Y g:i A" }}</td><td>{{ item.action }}</td><td>{{ item.status }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3" class="py-5 text-slate-500">No history recorded yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
